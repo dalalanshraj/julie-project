@@ -5,20 +5,42 @@ import { BedDouble, Bath, MapPin } from "lucide-react";
 const PropertyCard = ({ listing }) => {
   if (!listing) return null;
 
-  const getImageUrl = (path) => {
-    if (!path || typeof path !== "string") return "";
+  const getImageUrl = (photo) => {
+  const base =
+    import.meta.env.VITE_API_URL || "";
 
-    const base = import.meta.env.VITE_API_URL || "";
+  // new object format
+  if (photo?.url) {
+    if (photo.url.startsWith("http")) {
+      return photo.url;
+    }
 
-    if (path.startsWith("http")) return path;
+    return (
+      base.replace(/\/$/, "") +
+      "/" +
+      photo.url.replace(/^\//, "")
+    );
+  }
 
-    return base.replace(/\/$/, "") + "/" + path.replace(/^\//, "");
-  };
+  // old string fallback
+  if (typeof photo === "string") {
+    if (photo.startsWith("http")) {
+      return photo;
+    }
 
-  const image =
-    listing?.photos?.length > 0
-      ? getImageUrl(listing.photos[0]) // ✅ index 0 use karo
-      : "https://via.placeholder.com/400x300?text=No+Image";
+    return (
+      base.replace(/\/$/, "") +
+      "/" +
+      photo.replace(/^\//, "")
+    );
+  }
+
+  return "https://via.placeholder.com/400x300?text=No+Image";
+};
+
+  const image = getImageUrl(
+  listing?.photos?.[0]
+);
 
   const originalPrice = listing?.rates?.[0]?.nightly || null;
   const dealPrice = listing?.deal?.discountedRate;
