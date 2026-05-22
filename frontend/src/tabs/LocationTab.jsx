@@ -19,7 +19,7 @@ import "leaflet/dist/leaflet.css";
 
 // ==========================================
 // FIX LEAFLET ICONS
-// ==========================================\
+// ==========================================
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({

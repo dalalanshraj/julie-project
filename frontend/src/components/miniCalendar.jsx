@@ -249,7 +249,7 @@ const getDateType = (date) => {
                   "linear-gradient(135deg, #5C5CFF 50%, #d1fae5 50%)",
               }}
             ></span>
-            Check-In
+            Check-Out
           </div>
 
           {/* CHECK-OUT */}
@@ -261,26 +261,18 @@ const getDateType = (date) => {
                   "linear-gradient(315deg, #5C5CFF 50%, #d1fae5 50%)",
               }}
             ></span>
-            Check-Out
+            Check-In
           </div>
 
           {/* TURNOVER */}
-          <div className="flex items-center gap-1">
-            <span className="relative w-4 h-4 rounded overflow-hidden">
-              <span
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #5C5CFF 50%, #d1fae5 50%)",
-                }}
-              ></span>
-
-              <span
-                className="absolute w-[160%] h-[2px] bg-black top-1/2 left-[-30%] rotate-[-45deg]"
-              ></span>
-            </span>
-            Turnover
-          </div>
+          <div className="flex items-center gap-2">
+          <span className="relative w-4 h-4 rounded bg-[#5C5CFF] overflow-hidden">
+            <span
+              className="absolute w-[140%] h-[2px] bg-black top-1/2 left-[-20%] rotate-135"
+            ></span>
+          </span>
+          Turnover
+        </div>
 
           {/* HOLD */}
           <div className="flex items-center gap-1">

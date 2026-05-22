@@ -10,6 +10,8 @@ import {
   updateAmenities,
   updateActivities,
   updatePhotos,
+  deletePhoto,
+   reorderPhotos,
   updateVideo,
   updateRates,
   updateLocation ,
@@ -26,12 +28,13 @@ import {
   toggleListingStatus,
   getPublishedListings,
   getAllReviews,
-  deletePhoto
+
   
 
 } from "../controllers/listingController.js";
 import multer from "multer";
 import path from "path";
+import sharp from "sharp";
 import { fileURLToPath } from "url";
 // import path from "path";
 import { isAuth, isAdmin } from "../middleware/authMiddleware.js";
@@ -40,15 +43,15 @@ const router = express.Router();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "../gallery-uploads"));
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
+const upload = multer({
+  storage: multer.memoryStorage(),
+
+  limits: {
+    fileSize: 10 * 1024 * 1024,
   },
 });
-const upload = multer({ storage });
+
+
 router.get("/published", getPublishedListings);
 router.get("/reviews", getAllReviews); 
 router.get("/public", async (req, res) => {
@@ -78,6 +81,10 @@ router.put(
   updatePhotos
 );
 router.delete("/:id/photos/:filename", deletePhoto);
+router.put(
+  "/:id/photos/reorder",
+  reorderPhotos
+);
 router.put("/:id/video", updateVideo);
 router.put("/:id/rates", updateRates);
 router.put("/:id/rates/delete", deleteRate);

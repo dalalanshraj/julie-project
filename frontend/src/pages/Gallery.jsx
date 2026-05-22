@@ -21,6 +21,7 @@ export default function Gallery() {
     api
       .get("/gallery/published")
       .then((res) => setImages(res.data))
+      
       .catch(console.log);
   }, []);
 

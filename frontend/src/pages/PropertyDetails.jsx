@@ -95,8 +95,8 @@ const PropertyDetail = () => {
   if (!listing) return <p className="p-10">Property not found</p>;
 
   // ================= IMAGES =================
-  const imageUrls =
-    listing.photos?.map((img) => `${import.meta.env.VITE_API_URL}${img}`) || [];
+    const imageUrls =
+  listing.photos || [];
 
   // ================= REVIEWS =================
   const publishedReviews =

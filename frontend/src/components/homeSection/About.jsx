@@ -7,13 +7,38 @@ export default function AboutSection({ listingId }) {
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const getImageUrl = (path) => {
-    if (!path || typeof path !== "string") return "";
-    const base = import.meta.env.VITE_API_URL || "";
-    // already full URL
-    if (path.startsWith("http")) return path;
-    return base.replace(/\/$/, "") + "/" + path.replace(/^\//, "");
-  };
+ const getImageUrl = (photo) => {
+  const base =
+    import.meta.env.VITE_API_URL || "";
+
+  // new object format
+  if (photo?.url) {
+    if (photo.url.startsWith("http")) {
+      return photo.url;
+    }
+
+    return (
+      base.replace(/\/$/, "") +
+      "/" +
+      photo.url.replace(/^\//, "")
+    );
+  }
+
+  // old string fallback
+  if (typeof photo === "string") {
+    if (photo.startsWith("http")) {
+      return photo;
+    }
+
+    return (
+      base.replace(/\/$/, "") +
+      "/" +
+      photo.replace(/^\//, "")
+    );
+  }
+
+  return "https://via.placeholder.com/600x400";
+};
 
   // ===========================
   // FETCH LISTING
@@ -66,10 +91,9 @@ export default function AboutSection({ listingId }) {
   // ===========================
   // IMAGE
   // ===========================
-  const image =
-    listing?.photos?.length > 0
-      ? getImageUrl(listing.photos[0])
-      : "https://via.placeholder.com/600x400";
+  const image = getImageUrl(
+  listing?.photos?.[0]
+);
 
   return (
     <section className="w-full bg-[#f8f8f8] py-20 px-6 md:px-16">

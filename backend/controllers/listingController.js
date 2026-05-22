@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import Listing from "../models/Listing.js";
 import Deal from "../models/Deal.js";
 import Inquiry from "../models/Inquiry.js";
+import sharp from "sharp";
 import fs from "fs";
 import path from "path";
 dotenv.config();
@@ -76,29 +77,73 @@ export const updateProperty = async (req, res) => {
 
 export const getAllListings = async (req, res) => {
   try {
-    const listings = await Listing.find().lean(); // ✅ safe
 
-    const updatedListings = await Promise.all(
-      listings.map(async (listing) => {
-        // 🔔 Inquiry count
-        const inquiryCount = await Inquiry.countDocuments({
-          property: listing._id,
-        });
+    const listings = await Listing.find()
 
-        // ⭐ Review count (from listing.reviews array)
-        const reviewCount = listing.reviews?.length || 0;
+      .select(`
+        property
+        status
+        photos
+        reviews
+        createdAt
+      `)
 
-        return {
-          ...listing,
-          inquiryCount,
-          reviewCount,
-        };
-      }),
-    );
+      .lean();
+
+    // IDS
+    const listingIds =
+      listings.map((l) => l._id);
+
+    // SINGLE QUERY
+    const inquiryCounts =
+      await Inquiry.aggregate([
+        {
+          $match: {
+            property: {
+              $in: listingIds,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$property",
+            count: {
+              $sum: 1,
+            },
+          },
+        },
+      ]);
+
+    // MAP
+    const inquiryMap = {};
+
+    inquiryCounts.forEach((item) => {
+      inquiryMap[item._id.toString()] =
+        item.count;
+    });
+
+    // FINAL
+    const updatedListings =
+      listings.map((listing) => ({
+        ...listing,
+
+        inquiryCount:
+          inquiryMap[
+            listing._id.toString()
+          ] || 0,
+
+        reviewCount:
+          listing.reviews?.length || 0,
+      }));
 
     res.json(updatedListings);
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+
+    res.status(500).json({
+      error: err.message,
+    });
+
   }
 };
 
@@ -355,68 +400,144 @@ export const updateActivities = async (req, res) => {
 };
 export const updatePhotos = async (req, res) => {
   try {
-    const { id } = req.params;
+    const listing = await Listing.findById(req.params.id);
 
-    const newPhotos =
-      req.files?.map((file) => `/gallery-uploads/${file.filename}`) || [];
-
-    if (!newPhotos.length) {
-      return res.status(400).json({ error: "No photos uploaded" });
+    if (!listing) {
+      return res.status(404).json({
+        message: "Listing not found",
+      });
     }
 
-    const listing = await Listing.findById(id);
+    const uploadedPhotos = [];
 
-    if (!listing) return res.status(404).json({ error: "Listing not found" });
+    for (const file of req.files) {
+      const filename =
+        Date.now() +
+        "-" +
+        Math.round(Math.random() * 1e9) +
+        ".webp";
 
-    // ✅ total photos limit
-    if (listing.photos.length + newPhotos.length > 30) {
-      return res.status(400).json({ error: "Maximum 30 photos allowed" });
+      const outputPath = `gallery-uploads/${filename}`;
+
+      await sharp(file.buffer)
+        .resize({
+          width: 1600,
+          withoutEnlargement: true,
+        })
+        .webp({ quality: 75 })
+        .toFile(outputPath);
+
+      uploadedPhotos.push({
+        url: `/gallery-uploads/${filename}`,
+        order: listing.photos.length,
+      });
     }
 
-    // ✅ append photos
-    listing.photos.push(...newPhotos);
+    listing.photos.push(...uploadedPhotos);
 
     await listing.save();
 
     res.json({
-      message: "Photos uploaded successfully",
+      success: true,
       photos: listing.photos,
     });
   } catch (err) {
-    // console.error(err);
-    res.status(500).json({ error: "Photo upload failed" });
+    console.log(err);
+
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
 
 export const deletePhoto = async (req, res) => {
   try {
-    const { id, filename } = req.params;
+    console.log(
+      "DELETE PARAM:",
+      req.params.filename
+    );
 
-    const listing = await Listing.findById(id);
+    const listing = await Listing.findById(
+      req.params.id
+    );
 
     if (!listing) {
-      return res.status(404).json({ error: "Listing not found" });
+      return res.status(404).json({
+        message: "Listing not found",
+      });
     }
 
-    // remove from DB
-    listing.photos = listing.photos.filter((p) => !p.includes(filename));
+    const filename = req.params.filename;
 
-    await listing.save();
+    // remove physical file
+    const filePath = path.join(
+      process.cwd(),
+      "gallery-uploads",
+      filename
+    );
 
-    // remove file from server
-    const filePath = path.join("gallery-uploads", filename);
+    console.log("FILE PATH:", filePath);
 
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
+
+      console.log("FILE DELETED");
     }
 
+    // remove from mongo
+    listing.photos = listing.photos.filter(
+      (photo) => {
+        return (
+          photo.url &&
+          !photo.url.includes(filename)
+        );
+      }
+    );
+
+    await listing.save();
+
     res.json({
-      message: "Photo deleted",
+      success: true,
       photos: listing.photos,
     });
   } catch (err) {
-    // console.error(err);
-    res.status(500).json({ error: "Delete failed" });
+    console.log("DELETE ERROR:", err);
+
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+export const reorderPhotos = async (
+  req,
+  res
+) => {
+  try {
+    const listing = await Listing.findById(
+      req.params.id
+    );
+
+    if (!listing) {
+      return res.status(404).json({
+        message: "Listing not found",
+      });
+    }
+
+    listing.photos = req.body.photos;
+
+    await listing.save();
+
+    res.json({
+      success: true,
+      photos: listing.photos,
+    });
+  } catch (err) {
+    console.log(err);
+
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
 

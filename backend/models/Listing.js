@@ -45,9 +45,14 @@ const listingSchema = new mongoose.Schema(
 
     // ✅ PHOTOS
     photos: {
-      type: [String],
-      default: [],
+  type: [
+    {
+      url: String,
+      order: Number,
     },
+  ],
+  default: [],
+},
 
     // ✅ VIDEO
     video: {

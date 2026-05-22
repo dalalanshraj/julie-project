@@ -875,7 +875,7 @@ export default function Contact({ listingId }) {
             )}
 
             <p className="text-sm mt-2 text-black">
-              Cleaning Fee - 135 - Mandatory
+              Cleaning Fee - $135  (Mandatory)
             </p>
 
             <button

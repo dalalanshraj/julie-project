@@ -6,27 +6,33 @@ import {
   getPublishedImages,
   toggleStatus,
   deleteImage,
+  reorderGallery,
 } from "../controllers/galleryController.js";
+import sharp from "sharp";
 
 const router = express.Router();
 
 // STORAGE
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "gallery-uploads/"); // 👈 IMPORTANT
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
+const upload = multer({
+  storage: multer.memoryStorage(),
+
+  limits: {
+    fileSize: 10 * 1024 * 1024,
   },
 });
 
-const upload = multer({ storage });
+// const upload = multer({ storage });
 
 // ROUTES
-router.post("/", upload.single("image"), uploadImage);
+router.post(
+  "/",
+  upload.array("images", 30),
+  uploadImage
+);
 router.get("/", getAllImages);
 router.get("/published", getPublishedImages);
 router.put("/:id/toggle", toggleStatus);
 router.delete("/:id", deleteImage);
+router.put("/reorder", reorderGallery);
 
 export default router;

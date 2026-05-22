@@ -9,20 +9,33 @@ export default function ListingCard({
 
   if (!listing) return null;
 
-  const getImageUrl = (path) => {
-    if (!path || typeof path !== "string") return "";
+ const getImageUrl = (path) => {
+  if (!path) {
+    return "https://via.placeholder.com/400x300?text=No+Image";
+  }
 
-    const base = import.meta.env.VITE_API_URL || "";
+  const base =
+    import.meta.env.VITE_API_URL || "";
 
-    if (path.startsWith("http")) return path;
+  if (
+    typeof path === "string" &&
+    path.startsWith("http")
+  ) {
+    return path;
+  }
 
-    return base.replace(/\/$/, "") + "/" + path.replace(/^\//, "");
-  };
-
+  return (
+    base.replace(/\/$/, "") +
+    "/" +
+    String(path).replace(/^\//, "")
+  );
+};
   const image =
-    listing?.photos?.length > 0
-      ? `${import.meta.env.VITE_API_URL}${listing.photos[0]}`
-      : "https://via.placeholder.com/400x300?text=No+Image";
+  listing?.photos?.length > 0
+    ? getImageUrl(
+        listing.photos[0]?.url
+      )
+    : "https://via.placeholder.com/400x300?text=No+Image";
   // console.log("photos:", listing.photos);
   // console.log("image url:", image);
   const price =
