@@ -24,8 +24,38 @@ export default function Hero({listingId}) {
   const BASE_URL = import.meta.env.VITE_API_URL;
 
   // ✅ Helper (safe URL)
-  const getImageUrl = (path) => `${BASE_URL?.replace(/\/$/, "")}${path}`;
+  const getImageUrl = (photo) => {
+  const base =
+    import.meta.env.VITE_API_URL || "";
 
+  // object format
+  if (photo?.url) {
+    if (photo.url.startsWith("http")) {
+      return photo.url;
+    }
+
+    return (
+      base.replace(/\/$/, "") +
+      "/" +
+      photo.url.replace(/^\//, "")
+    );
+  }
+
+  // string format
+  if (typeof photo === "string") {
+    if (photo.startsWith("http")) {
+      return photo;
+    }
+
+    return (
+      base.replace(/\/$/, "") +
+      "/" +
+      photo.replace(/^\//, "")
+    );
+  }
+
+  return bgImagetwo;
+};
   // ===========================
   // FETCH FEATURED LISTING
   // ===========================
@@ -42,8 +72,11 @@ export default function Hero({listingId}) {
   // ===========================
   // DATA SAFE EXTRACTION
   // ===========================
-  const image = featured?.photos?.[4]
-    ? getImageUrl(featured.photos[0])
+ const image =
+  featured?.photos?.length > 0
+    ? getImageUrl(
+        featured.photos[0]
+      )
     : bgImagetwo;
 
   const title = featured?.property?.title || "Luxury Villa";
