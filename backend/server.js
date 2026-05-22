@@ -34,9 +34,9 @@ const PORT = process.env.PORT || 4004;
 const allowedOrigins = [
    "http://localhost:5174",
   "http://localhost:5173",
-  "http://localhost:5175",
-  "https://calypso401.mysawgrasspointe.com",
-  "https://www.calypso401.mysawgrasspointe.com",
+  "http://localhost:5176",
+  "https://calypso401.com/",
+  "https://www.calypso401.com/",
  
 ];
 
