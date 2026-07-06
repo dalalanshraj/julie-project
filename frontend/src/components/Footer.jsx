@@ -83,7 +83,7 @@ export default function Footer({listingId}) {
               <Link to="/admin/login">
               <button className="bg-[#FFE8BE] hover:scale-105 transition text-sm font-medium px-4 py-2 rounded shadow flex items-center gap-2 mt-1">
                 <MdEmail />
-                Admin Login
+                Owner Login
               </button>
             </Link> 
 
