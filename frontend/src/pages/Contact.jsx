@@ -9,53 +9,41 @@ import emailjs from "@emailjs/browser";
 import { useNavigate } from "react-router-dom";
 
 export default function Contact({ listingId }) {
-
   const [listing, setListing] = useState(null);
 
   const [blockedDates, setBlockedDates] = useState([]);
   const navigate = useNavigate();
-  const [loading, setLoading] =
-  useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [selecting, setSelecting] =
-    useState("checkIn");
+  const [selecting, setSelecting] = useState("checkIn");
 
-  const [images, setImages] =
-    useState([]);
+  const [images, setImages] = useState([]);
 
-  const [status, setStatus] =
-    useState({
-      type: "",
-      message: "",
-    });
+  const [status, setStatus] = useState({
+    type: "",
+    message: "",
+  });
 
-  const [form, setForm] =
-    useState({
-      name: "",
-      email: "",
-      phone: "",
-      adults: "",
-      kids: "",
-      checkIn: null,
-      checkOut: null,
-      message: "",
-    });
-
-  
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    adults: "",
+    kids: "",
+    checkIn: null,
+    checkOut: null,
+    message: "",
+  });
 
   // =====================================
   // FETCH BLOCKED DATES
   // =====================================
 
   useEffect(() => {
-
     api
       .get("/calendar/blocked")
-      .then((res) =>
-        setBlockedDates(res.data)
-      )
+      .then((res) => setBlockedDates(res.data))
       .catch(console.log);
-
   }, []);
 
   // =====================================
@@ -63,17 +51,12 @@ export default function Contact({ listingId }) {
   // =====================================
 
   const formatLocalDate = (date) => {
-
-    return new Intl.DateTimeFormat(
-      "en-CA",
-      {
-        timeZone: "America/Chicago",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }
-    ).format(new Date(date));
-
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Chicago",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(date));
   };
 
   // =====================================
@@ -81,34 +64,19 @@ export default function Contact({ listingId }) {
   // =====================================
 
   const blockedMap = useMemo(() => {
-
     const map = {};
 
     blockedDates.forEach((booking) => {
+      const start = new Date(booking.start);
 
-      const start =
-        new Date(booking.start);
+      const end = new Date(booking.end);
 
-      const end =
-        new Date(booking.end);
+      start.setHours(0, 0, 0, 0);
 
-      start.setHours(
-        0,
-        0,
-        0,
-        0
-      );
-
-      end.setHours(
-        0,
-        0,
-        0,
-        0
-      );
+      end.setHours(0, 0, 0, 0);
 
       // CHECK-IN
-      const startKey =
-        formatLocalDate(start);
+      const startKey = formatLocalDate(start);
 
       if (!map[startKey]) {
         map[startKey] = [];
@@ -117,8 +85,7 @@ export default function Contact({ listingId }) {
       map[startKey].push("CIN");
 
       // CHECK-OUT
-      const endKey =
-        formatLocalDate(end);
+      const endKey = formatLocalDate(end);
 
       if (!map[endKey]) {
         map[endKey] = [];
@@ -127,17 +94,12 @@ export default function Contact({ listingId }) {
       map[endKey].push("COUT");
 
       // BOOKED
-      const temp =
-        new Date(start);
+      const temp = new Date(start);
 
-      temp.setDate(
-        temp.getDate() + 1
-      );
+      temp.setDate(temp.getDate() + 1);
 
       while (temp < end) {
-
-        const bookedKey =
-          formatLocalDate(temp);
+        const bookedKey = formatLocalDate(temp);
 
         if (!map[bookedKey]) {
           map[bookedKey] = [];
@@ -145,16 +107,11 @@ export default function Contact({ listingId }) {
 
         map[bookedKey].push("R");
 
-        temp.setDate(
-          temp.getDate() + 1
-        );
-
+        temp.setDate(temp.getDate() + 1);
       }
-
     });
 
     return map;
-
   }, [blockedDates]);
 
   // =====================================
@@ -162,66 +119,43 @@ export default function Contact({ listingId }) {
   // =====================================
 
   const getDateType = (date) => {
-
     const today = new Date();
 
-    today.setHours(
-      0,
-      0,
-      0,
-      0
-    );
+    today.setHours(0, 0, 0, 0);
 
-    const currentDate =
-      new Date(date);
+    const currentDate = new Date(date);
 
-    currentDate.setHours(
-      0,
-      0,
-      0,
-      0
-    );
+    currentDate.setHours(0, 0, 0, 0);
 
     // PAST
     if (currentDate < today) {
       return "past-day";
     }
 
-    const currentKey =
-      formatLocalDate(currentDate);
+    const currentKey = formatLocalDate(currentDate);
 
-    const statuses =
-      blockedMap[currentKey] || [];
+    const statuses = blockedMap[currentKey] || [];
 
-    const hasCIN =
-      statuses.includes("CIN");
+    const hasCIN = statuses.includes("CIN");
 
-    const hasCOUT =
-      statuses.includes("COUT");
+    const hasCOUT = statuses.includes("COUT");
 
-    const hasR =
-      statuses.includes("R");
+    const hasR = statuses.includes("R");
 
     // =====================================
     // PREVIOUS DAY
     // =====================================
 
-    const prevDay =
-      new Date(currentDate);
+    const prevDay = new Date(currentDate);
 
-    prevDay.setDate(
-      prevDay.getDate() - 1
-    );
+    prevDay.setDate(prevDay.getDate() - 1);
 
-    const prevKey =
-      formatLocalDate(prevDay);
+    const prevKey = formatLocalDate(prevDay);
 
-    const prevStatuses =
-      blockedMap[prevKey] || [];
+    const prevStatuses = blockedMap[prevKey] || [];
 
     const prevHasBooking =
-      prevStatuses.includes("R") ||
-      prevStatuses.includes("COUT");
+      prevStatuses.includes("R") || prevStatuses.includes("COUT");
 
     // =====================================
     // TURNOVER
@@ -231,10 +165,7 @@ export default function Contact({ listingId }) {
       return "turnover-day";
     }
 
-    if (
-      hasCIN &&
-      prevHasBooking
-    ) {
+    if (hasCIN && prevHasBooking) {
       return "turnover-day";
     }
 
@@ -254,7 +185,6 @@ export default function Contact({ listingId }) {
     }
 
     return "available-day";
-
   };
 
   // =====================================
@@ -262,17 +192,11 @@ export default function Contact({ listingId }) {
   // =====================================
 
   const isBlocked = (date) => {
+    const key = formatLocalDate(date);
 
-    const key =
-      formatLocalDate(date);
+    const statuses = blockedMap[key] || [];
 
-    const statuses =
-      blockedMap[key] || [];
-
-    return (
-      statuses.includes("R")
-    );
-
+    return statuses.includes("R");
   };
 
   // =====================================
@@ -280,22 +204,16 @@ export default function Contact({ listingId }) {
   // =====================================
 
   useEffect(() => {
-
     if (!status.message) return;
 
-    const timer =
-      setTimeout(() => {
+    const timer = setTimeout(() => {
+      setStatus({
+        type: "",
+        message: "",
+      });
+    }, 4000);
 
-        setStatus({
-          type: "",
-          message: "",
-        });
-
-      }, 4000);
-
-    return () =>
-      clearTimeout(timer);
-
+    return () => clearTimeout(timer);
   }, [status]);
 
   // =====================================
@@ -303,82 +221,55 @@ export default function Contact({ listingId }) {
   // =====================================
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
 
-    if (
-      !form.name ||
-      !form.email ||
-      !form.phone
-    ) {
-      alert(
-        "Please fill all details ⚠️"
-      );
+    if (!form.name || !form.email || !form.phone) {
+      alert("Please fill all details ⚠️");
       return;
     }
 
-    if (
-      !form.checkIn ||
-      !form.checkOut
-    ) {
-      alert(
-        "Please select dates 📅"
-      );
+    if (!form.checkIn || !form.checkOut) {
+      alert("Please select dates 📅");
       return;
     }
 
     try {
-
       setLoading(true);
 
-      const PROPERTY_ID =
-        "6a04c24a43652c16fdde1a52";
+      const PROPERTY_ID = "6a04c24a43652c16fdde1a52";
 
       const dbPayload = {
         property: PROPERTY_ID,
         name: form.name,
         email: form.email,
         phone: form.phone,
-        message:
-          form.message || "",
+        message: form.message || "",
 
-        Arrival:
-          form.checkIn,
+        Arrival: form.checkIn,
 
-        Departure:
-          form.checkOut,
+        Departure: form.checkOut,
 
-        Adults:
-          form.adults,
+        Adults: form.adults,
 
-        Kids:
-          form.kids,
+        Kids: form.kids,
       };
 
-      await api.post(
-        "/inquiries",
-        dbPayload
-      );
+      await api.post("/inquiries", dbPayload);
 
       const emailPayload = {
         name: form.name,
         email: form.email,
         phone: form.phone,
 
-        checkIn:
-          form.checkIn.toDateString(),
+        checkIn: form.checkIn.toDateString(),
 
-        checkOut:
-          form.checkOut.toDateString(),
+        checkOut: form.checkOut.toDateString(),
 
-        adults:
-          form.adults,
+        adults: form.adults,
 
-        kids:
-          form.kids,
+        kids: form.kids,
 
-        message:
-          form.message,
+        message: form.message,
       };
 
       await emailjs.send(
@@ -390,8 +281,7 @@ export default function Contact({ listingId }) {
 
       setStatus({
         type: "success",
-        message:
-          "Booking request sent successfully ✅",
+        message: "Booking request sent successfully ✅",
       });
 
       setForm({
@@ -405,32 +295,18 @@ export default function Contact({ listingId }) {
         message: "",
       });
       setTimeout(() => {
-
-  navigate("/");
-
-}, 1500);
-
+        navigate("/");
+      }, 1500);
     } catch (err) {
-
-      console.log(
-        "ERROR:",
-        err.response?.data || err
-      );
+      console.log("ERROR:", err.response?.data || err);
 
       setStatus({
         type: "error",
-        message:
-          err.response?.data?.error ||
-          "Something went wrong ❌",
+        message: err.response?.data?.error || "Something went wrong ❌",
       });
-      
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
   // =====================================
@@ -438,20 +314,8 @@ export default function Contact({ listingId }) {
   // =====================================
 
   const nights =
-    form.checkIn &&
-    form.checkOut
-      ? Math.ceil(
-          (
-            form.checkOut -
-            form.checkIn
-          ) /
-            (
-              1000 *
-              60 *
-              60 *
-              24
-            )
-        )
+    form.checkIn && form.checkOut
+      ? Math.ceil((form.checkOut - form.checkIn) / (1000 * 60 * 60 * 24))
       : 0;
 
   // =====================================
@@ -459,94 +323,99 @@ export default function Contact({ listingId }) {
   // =====================================
 
   useEffect(() => {
-
     api
-      .get(
-        `/listings/${listingId}`
-      )
+      .get(`/listings/${listingId}`)
       .then((res) => {
-
         setListing(res.data);
-
       })
       .catch(console.log);
-
   }, [listingId]);
 
-  const getImageUrl = (path) => {
-
-    if (
-      !path ||
-      typeof path !== "string"
-    ) {
-      return "";
-    }
-
+  const getImageUrl = (photo) => {
     const base =
-      import.meta.env.VITE_API_URL ||
-      "";
-
-    if (
-      path.startsWith("http")
-    ) {
-      return path;
+      import.meta.env.VITE_API_URL || "";
+  
+    // new object format
+    if (photo?.url) {
+      if (photo.url.startsWith("http")) {
+        return photo.url;
+      }
+  
+      return (
+        base.replace(/\/$/, "") +
+        "/" +
+        photo.url.replace(/^\//, "")
+      );
     }
-
-    return (
-      base.replace(/\/$/, "") +
-      "/" +
-      path.replace(/^\//, "")
-    );
-
+  
+    // old string fallback
+    if (typeof photo === "string") {
+      if (photo.startsWith("http")) {
+        return photo;
+      }
+  
+      return (
+        base.replace(/\/$/, "") +
+        "/" +
+        photo.replace(/^\//, "")
+      );
+    }
+  
+    return "https://via.placeholder.com/600x400";
   };
-
-  const image =
-    listing?.photos?.length > 0
-      ? getImageUrl(
-          listing.photos[0]
-        )
-      : "https://via.placeholder.com/600x400";
-
-  const image1 =
-    images[0] ||
-    "https://images.unsplash.com/photo-1505691938895-1758d7feb511";
-
-  const heroImage =
-    images[1] || image1;
-
+  
+    useEffect(() => {
+      api
+        .get("/gallery/published")
+        .then((res) => {
+          const data = res.data || [];
+  
+          const formatted = data.map((img) => getImageUrl(img.image));
+  
+          setImages(formatted);
+        })
+        .catch(console.log);
+    }, []);
+  
+    const image =
+      listing?.photos?.length > 0
+        ? getImageUrl(listing.photos[0])
+        : "https://via.placeholder.com/600x400";
+  
+    // 👉 fallback images (important)
+    const image1 =
+      images[0] || "https://images.unsplash.com/photo-1505691938895-1758d7feb511";
+  
+    const image2 =
+      images[1] || "https://images.unsplash.com/photo-1560185007-cde436f6a4d0";
+  
+    const image3 = images[4];
+  
+    const heroImage = images[2] || image1;
   return (
     <>
-      {/* HERO */}
+      {/* 🔥 HERO */}
       <section className="relative h-[50vh] flex items-center justify-center text-white">
-
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              `url(${heroImage})`,
+           style={{
+            backgroundImage: `url(${heroImage})`,
           }}
         />
-
         <div className="absolute inset-0 bg-black/60" />
 
         <div className="relative text-center px-6">
-
           <h1 className="text-3xl md:text-5xl font-semibold mb-4">
             Contact & Booking
           </h1>
-
         </div>
-
       </section>
 
       {/* SECTION */}
       <section className="py-10 md:py-16 px-4 sm:px-6 md:px-16 bg-white">
-
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 items-start">
-
           {/* LEFT */}
           <div className="w-full">
-
             <h2 className="text-3xl md:text-5xl font-semibold text-gray-800">
               Get in Touch
             </h2>
@@ -557,86 +426,53 @@ export default function Contact({ listingId }) {
 
             {/* CONTACT */}
             <div className="space-y-4 text-gray-700 mb-6">
-
               <div className="flex items-center gap-3 justify-center md:justify-start">
-
-                <IoLocation
-                  size={20}
-                  className="text-red-500"
-                />
+                <IoLocation size={20} className="text-red-500" />
 
                 <p className="text-sm md:text-base">
-
                   {listing?.location?.address1 ||
                     listing?.property?.address ||
                     "Calypso 401 West"}
-
                 </p>
-
               </div>
 
               <div className="flex items-center gap-3 justify-center md:justify-start">
-
-                <MdEmail
-                  size={20}
-                  className="text-green-500"
-                />
+                <MdEmail size={20} className="text-green-500" />
 
                 <p className="text-sm md:text-base break-all">
-
-                  {listing?.property?.altEmail ||
-                    "Email not available"}
-
+                  {listing?.property?.altEmail || "Email not available"}
                 </p>
-
               </div>
 
               <div className="flex items-center gap-3 justify-center md:justify-start">
-
-                <FaPhoneAlt
-                  size={18}
-                  className="text-gray-800"
-                />
+                <FaPhoneAlt size={18} className="text-gray-800" />
 
                 <p className="text-sm md:text-base">
-
-                  {listing?.property?.altPhone ||
-                    "Phone not available"}
-
+                  {listing?.property?.altPhone || "Phone not available"}
                 </p>
-
               </div>
-
             </div>
 
             {/* MAP */}
             <div className="rounded-2xl overflow-hidden shadow-md w-full">
-
               <iframe
                 className="w-full h-[250px] md:h-[350px]"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d911.3272196319251!2d-85.87424523038668!3d30.21483089842738!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88938c41503baa51%3A0x21a40f55ed13dc05!2s15902%20FL-30%2C%20Panama%20City%20Beach%2C%20FL%2032413%2C%20USA!5e1!3m2!1sen!2sin!4v1778705995783!5m2!1sen!2sin"
                 width="600"
                 height="450"
               ></iframe>
-
             </div>
-
           </div>
 
           {/* RIGHT */}
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
-
+          <form onSubmit={handleSubmit} className="space-y-4">
             <input
               placeholder="Name"
               className="w-full border p-3 rounded-lg"
               onChange={(e) =>
                 setForm({
                   ...form,
-                  name:
-                    e.target.value,
+                  name: e.target.value,
                 })
               }
             />
@@ -647,8 +483,7 @@ export default function Contact({ listingId }) {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  email:
-                    e.target.value,
+                  email: e.target.value,
                 })
               }
             />
@@ -659,47 +494,32 @@ export default function Contact({ listingId }) {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  phone:
-                    e.target.value,
+                  phone: e.target.value,
                 })
               }
             />
 
             {/* GUESTS */}
             <div className="flex gap-3">
-
               <div className="w-full">
-
-                <label className="text-sm text-gray-500">
-                  Adults
-                </label>
+                <label className="text-sm text-gray-500">Adults</label>
 
                 <input
                   type="number"
                   min="1"
-                  value={
-                    form.adults
-                  }
+                  value={form.adults}
                   className="w-full border p-3 rounded-lg"
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      adults:
-                        Number(
-                          e.target
-                            .value
-                        ),
+                      adults: Number(e.target.value),
                     })
                   }
                 />
-
               </div>
 
               <div className="w-full">
-
-                <label className="text-sm text-gray-500">
-                  Kids
-                </label>
+                <label className="text-sm text-gray-500">Kids</label>
 
                 <input
                   type="number"
@@ -709,150 +529,72 @@ export default function Contact({ listingId }) {
                   onChange={(e) =>
                     setForm({
                       ...form,
-                      kids:
-                        Number(
-                          e.target
-                            .value
-                        ),
+                      kids: Number(e.target.value),
                     })
                   }
                 />
-
               </div>
-
             </div>
 
             {/* DATE BOXES */}
             <div className="flex gap-3">
-
               <div
-                onClick={() =>
-                  setSelecting(
-                    "checkIn"
-                  )
-                }
+                onClick={() => setSelecting("checkIn")}
                 className="w-full p-3 border rounded-lg text-center cursor-pointer"
               >
-
-                {form.checkIn
-                  ? form.checkIn.toDateString()
-                  : "Check-in"}
-
+                {form.checkIn ? form.checkIn.toDateString() : "Check-in"}
               </div>
 
               <div
-                onClick={() =>
-                  setSelecting(
-                    "checkOut"
-                  )
-                }
+                onClick={() => setSelecting("checkOut")}
                 className="w-full p-3 border rounded-lg text-center cursor-pointer"
               >
-
-                {form.checkOut
-                  ? form.checkOut.toDateString()
-                  : "Check-out"}
-
+                {form.checkOut ? form.checkOut.toDateString() : "Check-out"}
               </div>
-
             </div>
 
             {/* CALENDAR */}
             <div className="border rounded-xl p-2">
-
               <DatePicker
                 inline
                 selectsRange
-                startDate={
-                  form.checkIn
-                }
-                endDate={
-                  form.checkOut
-                }
+                startDate={form.checkIn}
+                endDate={form.checkOut}
                 onChange={(dates) => {
+                  const [start, end] = dates;
 
-                  const [
-                    start,
-                    end,
-                  ] = dates;
-
-                  if (
-                    selecting ===
-                    "checkIn"
-                  ) {
-
+                  if (selecting === "checkIn") {
                     setForm({
                       ...form,
-                      checkIn:
-                        start,
-                      checkOut:
-                        null,
+                      checkIn: start,
+                      checkOut: null,
                     });
 
-                    setSelecting(
-                      "checkOut"
-                    );
-
+                    setSelecting("checkOut");
                   } else {
-
                     setForm({
                       ...form,
-                      checkIn:
-                        form.checkIn,
-                      checkOut:
-                        end,
+                      checkIn: form.checkIn,
+                      checkOut: end,
                     });
-
                   }
-
                 }}
-                minDate={
-                  new Date()
-                }
-                dayClassName={
-                  getDateType
-                }
-                showOtherMonths={
-                  false
-                }
+                minDate={new Date()}
+                dayClassName={getDateType}
+                showOtherMonths={false}
                 fixedHeight
-                filterDate={(
-                  date
-                ) => {
+                filterDate={(date) => {
+                  const today = new Date();
 
-                  const today =
-                    new Date();
+                  today.setHours(0, 0, 0, 0);
 
-                  today.setHours(
-                    0,
-                    0,
-                    0,
-                    0
-                  );
+                  const current = new Date(date);
 
-                  const current =
-                    new Date(
-                      date
-                    );
+                  current.setHours(0, 0, 0, 0);
 
-                  current.setHours(
-                    0,
-                    0,
-                    0,
-                    0
-                  );
-
-                  return (
-                    current >=
-                      today &&
-                    !isBlocked(
-                      date
-                    )
-                  );
-
+                  return current >= today && !isBlocked(date);
                 }}
               />
-
             </div>
 
             <textarea
@@ -861,38 +603,27 @@ export default function Contact({ listingId }) {
               onChange={(e) =>
                 setForm({
                   ...form,
-                  message:
-                    e.target.value,
+                  message: e.target.value,
                 })
               }
             />
 
             {nights > 0 && (
-              <p className="text-sm text-gray-600">
-                {nights} nights
-                selected
-              </p>
+              <p className="text-sm text-gray-600">{nights} nights selected</p>
             )}
 
             <p className="text-sm mt-2 text-black">
-              Cleaning Fee - $135  (Mandatory)
+              Cleaning Fee - $135 (Mandatory)
             </p>
 
             <button
               disabled={loading}
               className="w-full bg-[#FFE8BE] py-3 rounded-lg"
             >
-
-              {loading
-                ? "Sending..."
-                : "Send Booking"}
-
+              {loading ? "Sending..." : "Send Booking"}
             </button>
-
           </form>
-
         </div>
-
       </section>
 
       {/* STYLES */}
@@ -1090,5 +821,4 @@ export default function Contact({ listingId }) {
       `}</style>
     </>
   );
-
 }

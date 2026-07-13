@@ -72,7 +72,7 @@ export default function About({ listingId }) {
   return (
     <>
       {/* 🔥 HERO */}
-      <section className="relative h-[60vh] flex items-center justify-center text-white">
+      <section className="relative h-[50vh] flex items-center justify-center text-white">
         <div
           className="absolute inset-0 bg-fixed bg-cover bg-center"
           style={{
