@@ -186,7 +186,7 @@ export default function Gallery() {
     <>
       {/* ================= HERO ================= */}
 
-      <section className="relative h-[30vh] flex items-center justify-center text-white overflow-hidden">
+      <section className="relative h-[50vh] flex items-center justify-center text-white overflow-hidden">
         <div
           className="absolute inset-0 bg-center bg-cover"
           style={{
