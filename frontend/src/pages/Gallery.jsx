@@ -42,7 +42,7 @@ export default function Gallery() {
       );
     }
 
-    return "https://calypso401.com/gallery-uploads/1778873856472-img_83aa4901adf2a88d_img_1094.jpg";
+    return "/gallery-uploads/1778873856472-img_83aa4901adf2a88d_img_1094.jpg";
   };
 
   // =========================
@@ -85,7 +85,7 @@ export default function Gallery() {
   const heroImage =
     images.length > 0
       ? getImageUrl(images[2]?.image || images[0]?.image)
-      : "https://calypso401.com/gallery-uploads/1778873856472-img_83aa4901adf2a88d_img_1094.jpg";
+      : "/gallery-uploads/1778873856472-img_83aa4901adf2a88d_img_1094.jpg";
 
   // =========================
   // SLIDER FUNCTIONS
