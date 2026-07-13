@@ -92,7 +92,7 @@ export default function AboutSection({ listingId }) {
   // IMAGE
   // ===========================
   const image = getImageUrl(
-  listing?.photos?.[0]
+  listing?.photos?.[10]
 );
 
   return (

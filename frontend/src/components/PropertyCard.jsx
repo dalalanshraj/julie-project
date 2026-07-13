@@ -39,7 +39,7 @@ const PropertyCard = ({ listing }) => {
 };
 
   const image = getImageUrl(
-  listing?.photos?.[0]
+  listing?.photos?.[2]
 );
 
   const originalPrice = listing?.rates?.[0]?.nightly || null;

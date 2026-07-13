@@ -75,7 +75,7 @@ export default function Hero({listingId}) {
  const image =
   featured?.photos?.length > 0
     ? getImageUrl(
-        featured.photos[0]
+        featured.photos[1]
       )
     : bgImagetwo;
 
