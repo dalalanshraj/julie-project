@@ -1,4 +1,4 @@
-import { Editor } from "@tinymce/tinymce-react";
+ import { Editor } from "@tinymce/tinymce-react";
 import { useEffect, useRef, useState } from "react";
 import api from "../api/axios.js";
 import { useModal } from "../context/ModalContext";

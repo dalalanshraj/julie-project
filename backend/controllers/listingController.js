@@ -84,7 +84,8 @@ export const getAllListings = async (req, res) => {
         property
         status
         photos
-        reviews
+         reviews
+         amenities
         createdAt
       `)
 
@@ -151,15 +152,67 @@ export const getAllListings = async (req, res) => {
 
 export const getListingById = async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id);
-    if (!listing) return res.status(404).json({ error: "Listing not found" });
 
-    res.json(listing);
+    const listing = await Listing.findById(
+      req.params.id
+    );
+
+    if (!listing) {
+      return res.status(404).json({
+        error: "Listing not found",
+      });
+    }
+
+    const today = new Date();
+
+    const deal = await Deal.findOne({
+      listingId: listing._id,
+      displayFrom: { $lte: today },
+      displayEnd: { $gte: today },
+      status: "active",
+    });
+
+    res.json({
+      ...listing.toObject(),
+      deal: deal || null,
+    });
+
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch listing" });
+    console.error(err);
+
+    res.status(500).json({
+      error: "Failed to fetch listing",
+    });
   }
 };
 
+export const getPublishedListings = async (req, res) => {
+  try {
+    const listings = await Listing.find({ status: "published" });
+
+    const today = new Date();
+
+    const deals = await Deal.find({
+      displayFrom: { $lte: today },
+      displayEnd: { $gte: today },
+    });
+
+    const result = listings.map((l) => {
+      const deal = deals.find(
+        (d) => d.listingId.toString() === l._id.toString(),
+      );
+
+      return {
+        ...l._doc,
+        deal: deal || null,
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 // ADMIN – Delete listing
 
 export const deleteListing = async (req, res) => {
@@ -398,56 +451,94 @@ export const updateActivities = async (req, res) => {
     res.status(500).json({ error: "Failed to update activities" });
   }
 };
-export const updatePhotos = async (req, res) => {
+export const updatePhotos = async (
+  req,
+  res
+) => {
+
   try {
-    const listing = await Listing.findById(req.params.id);
+
+    const listing =
+      await Listing.findById(
+        req.params.id
+      );
 
     if (!listing) {
+
       return res.status(404).json({
         message: "Listing not found",
       });
+
     }
 
     const uploadedPhotos = [];
 
     for (const file of req.files) {
+
       const filename =
         Date.now() +
         "-" +
-        Math.round(Math.random() * 1e9) +
+        Math.round(
+          Math.random() * 1e9
+        ) +
         ".webp";
 
-      const outputPath = `gallery-uploads/${filename}`;
+      const outputPath =
+        `uploads/${filename}`;
 
-      await sharp(file.buffer)
+      // ✅ COMPRESS
+      await sharp(file.path)
+
         .resize({
           width: 1600,
           withoutEnlargement: true,
         })
-        .webp({ quality: 75 })
+
+        .webp({
+          quality: 70,
+        })
+
         .toFile(outputPath);
 
+      // ✅ DELETE TEMP FILE
+      fs.unlinkSync(file.path);
+
       uploadedPhotos.push({
-        url: `/gallery-uploads/${filename}`,
-        order: listing.photos.length,
+
+        url: `/uploads/${filename}`,
+
+        order:
+          listing.photos.length +
+          uploadedPhotos.length,
+
       });
+
     }
 
-    listing.photos.push(...uploadedPhotos);
+    listing.photos.push(
+      ...uploadedPhotos
+    );
 
     await listing.save();
 
     res.json({
+
       success: true,
+
       photos: listing.photos,
+
     });
+
   } catch (err) {
+
     console.log(err);
 
     res.status(500).json({
       message: err.message,
     });
+
   }
+
 };
 
 export const deletePhoto = async (req, res) => {
@@ -664,11 +755,10 @@ export const getAllReviews = async (req, res) => {
 
         listingId: listing._id,
 
-        property: {
-          title: listing.property?.title || "",
-
-          image: listing.photos?.[0] || "",
-        },
+       property: {
+  title: listing.property?.title || "",
+  image: listing.photos?.[0]?.url || "",
+},
       });
     });
   });
@@ -765,9 +855,23 @@ export const toggleListingStatus = async (req, res) => {
   }
 };
 
-export const getPublishedListings = async (req, res) => {
+
+
+export const getCommunityListings =
+async (req, res) => {
+
   try {
-    const listings = await Listing.find({ status: "published" });
+
+    const community =
+      decodeURIComponent(
+        req.params.community
+      );
+
+    const listings =
+      await Listing.find({
+        status: "published",
+        "property.community": community,
+      });
 
     const today = new Date();
 
@@ -776,19 +880,27 @@ export const getPublishedListings = async (req, res) => {
       displayEnd: { $gte: today },
     });
 
-    const result = listings.map((l) => {
+    const result = listings.map((listing) => {
+
       const deal = deals.find(
-        (d) => d.listingId.toString() === l._id.toString(),
+        (d) =>
+          d.listingId.toString() ===
+          listing._id.toString()
       );
 
       return {
-        ...l._doc,
+        ...listing._doc,
         deal: deal || null,
       };
     });
 
     res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+
+  } catch (err) {
+
+    res.status(500).json({
+      error: err.message,
+    });
+
   }
 };

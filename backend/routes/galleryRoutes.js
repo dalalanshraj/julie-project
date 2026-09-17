@@ -1,5 +1,6 @@
 import express from "express";
 import multer from "multer";
+
 import {
   uploadImage,
   getAllImages,
@@ -8,31 +9,51 @@ import {
   deleteImage,
   reorderGallery,
 } from "../controllers/galleryController.js";
-import sharp from "sharp";
 
 const router = express.Router();
 
-// STORAGE
-const upload = multer({
-  storage: multer.memoryStorage(),
+// ===========================
+// MULTER STORAGE
+// ===========================
 
-  limits: {
-    fileSize: 10 * 1024 * 1024,
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "temp/");
+  },
+
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
   },
 });
 
-// const upload = multer({ storage });
+// ===========================
+// UPLOAD
+// ===========================
 
+const upload = multer({
+  storage,
+
+  limits: {
+    fileSize: 20 * 1024 * 1024,
+
+    files: 60,
+  },
+});
+
+// ===========================
 // ROUTES
-router.post(
-  "/",
-  upload.array("images", 30),
-  uploadImage
-);
+// ===========================
+
+router.post("/", upload.array("images", 60), uploadImage);
+
 router.get("/", getAllImages);
+
 router.get("/published", getPublishedImages);
+
 router.put("/:id/toggle", toggleStatus);
+
 router.delete("/:id", deleteImage);
+
 router.put("/reorder", reorderGallery);
 
 export default router;
